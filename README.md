@@ -140,3 +140,16 @@ URL: https://isc.sans.edu/
 | Midterm I | March 2dn. Midnight. |
 | Midterm II | May 3rd. Midnight. |
 | Final | TBD |
+
+
+## Additional Materials
+- [Cyber Security Advanced Ethical Hacking](https://www.virginiacyberrange.org/courseware/cyber-security-advanced-ethical-hacking)
+- [Social Engineering and Phishing](https://cltc.berkeley.edu/about-us/citizen-clinic/citizen-clinic-cybersecurity-education-center/social-engineering-and-phishing/)
+- [Social-Engineer Framework](https://www.social-engineer.org/framework/general-discussion/)
+- [Security Trough Education](https://www.social-engineer.org/)
+- [Education & Awareness](https://security.berkeley.edu/education-awareness)
+- [Phishing](https://phishingquiz.withgoogle.com/)
+- [NICCS](https://niccs.cisa.gov/)
+- [Try Cyber](https://trycyber.us/challenges/)
+- [CISCO Networking Academy](https://www.netacad.com/)
+- []()

@@ -1,0 +1,224 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# ==============================================================================
+# Lab 5: DVWA - Damn Vulnerable Web Application
+# ==============================================================================
+#
+# Created: 2026-02-22
+# Author: Miguel Guirao
+# ==============================================================================
+# WARNING: This VM runs DVWA, an intentionally insecure web application!
+# Use ONLY in isolated lab environments - NEVER expose to the internet!
+# ==============================================================================
+
+Vagrant.configure("2") do |config|
+  # Ubuntu 22.04 LTS (Jammy Jellyfish) — the latest Ubuntu box published by
+  # Canonical on Vagrant Cloud (ubuntu/noble64 was never released there).
+  config.vm.box = "ubuntu/jammy64"
+
+  # Lab VM hostname
+  config.vm.hostname = "dvwa-lab"
+
+  # Port forwarding - DVWA accessible from host browser at http://localhost:8080
+  config.vm.network "forwarded_port", guest: 80, host: 8080, id: "http"
+
+  # Private network so you can scan/probe the VM with tools like Nmap, Nikto
+  config.vm.network "private_network", ip: "192.168.56.50"
+
+  # VirtualBox provider settings
+  config.vm.provider "virtualbox" do |vb|
+    vb.name   = "lab5-dvwa"
+    vb.memory = "2048"
+    vb.cpus   = 2
+  end
+
+  # Inline provisioning script
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "============================================================"
+    echo " Lab 5: DVWA - Damn Vulnerable Web Application Setup"
+    echo "============================================================"
+
+    # Suppress interactive prompts during apt operations
+    export DEBIAN_FRONTEND=noninteractive
+
+    # -----------------------------------------------------------------------
+    # System update and package installation
+    # -----------------------------------------------------------------------
+    echo "[*] Updating system packages..."
+    apt-get update -y -q
+    apt-get upgrade -y -q
+
+    echo "[*] Installing Apache, MySQL, PHP and extensions..."
+    apt-get install -y -q \
+      apache2 \
+      mysql-server \
+      php \
+      php-mysql \
+      php-gd \
+      php-xml \
+      php-mbstring \
+      php-curl \
+      php-zip \
+      git \
+      curl \
+      unzip \
+      vim
+
+    # Enable Apache rewrite module (required for DVWA .htaccess rules)
+    a2enmod rewrite
+
+    # Start and enable services at boot
+    systemctl enable --now apache2
+    systemctl enable --now mysql
+
+    # -----------------------------------------------------------------------
+    # MySQL: create DVWA database and dedicated user
+    # -----------------------------------------------------------------------
+    echo "[*] Configuring MySQL..."
+    # Wait for MySQL to be fully initialized
+    sleep 3
+
+    # On Ubuntu 24.04, MySQL root uses auth_socket — no password needed when
+    # running as root, which is what the Vagrant provisioner does.
+    mysql -u root <<EOF
+CREATE DATABASE IF NOT EXISTS dvwa
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'dvwa'@'localhost' IDENTIFIED BY 'p@ssw0rd';
+GRANT ALL PRIVILEGES ON dvwa.* TO 'dvwa'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+    # -----------------------------------------------------------------------
+    # DVWA Installation
+    # -----------------------------------------------------------------------
+    echo "[*] Cloning DVWA from GitHub..."
+    if [ ! -d "/var/www/html/dvwa" ]; then
+      git clone --depth=1 https://github.com/digininja/DVWA.git /var/www/html/dvwa
+    fi
+
+    # -----------------------------------------------------------------------
+    # DVWA Configuration
+    # -----------------------------------------------------------------------
+    echo "[*] Configuring DVWA..."
+    cp /var/www/html/dvwa/config/config.inc.php.dist \
+       /var/www/html/dvwa/config/config.inc.php
+
+    # The DVWA dist config ships with db credentials: dvwa / p@ssw0rd — these
+    # already match what we created above, so no DB changes needed.
+
+    # Set default security level to 'low' so students start with exploitable
+    # settings right out of the box (can be raised inside the DVWA UI).
+    sed -i "s/'default_security_level' \] = 'impossible'/'default_security_level' ] = 'low'/" \
+      /var/www/html/dvwa/config/config.inc.php
+
+    # -----------------------------------------------------------------------
+    # File Permissions
+    # -----------------------------------------------------------------------
+    echo "[*] Setting file permissions..."
+    chown -R www-data:www-data /var/www/html/dvwa
+    find /var/www/html/dvwa -type d -exec chmod 755 {} \;
+    find /var/www/html/dvwa -type f -exec chmod 644 {} \;
+
+    # DVWA requires write access to these paths for certain vulnerability demos
+    chmod -R 777 /var/www/html/dvwa/hackable/uploads/
+    chmod -R 777 /var/www/html/dvwa/config/
+
+    # phpids tmp directory (only present in older DVWA releases)
+    PHPIDS_TMP="/var/www/html/dvwa/external/phpids/0.6/lib/IDS/tmp/"
+    [ -d "$PHPIDS_TMP" ] && chmod -R 777 "$PHPIDS_TMP"
+
+    # -----------------------------------------------------------------------
+    # Apache Virtual Host for DVWA
+    # -----------------------------------------------------------------------
+    echo "[*] Configuring Apache VirtualHost..."
+    cat > /etc/apache2/sites-available/dvwa.conf <<'EOF'
+<VirtualHost *:80>
+    ServerAdmin webmaster@dvwa-lab
+    DocumentRoot /var/www/html/dvwa
+
+    <Directory /var/www/html/dvwa>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog  ${APACHE_LOG_DIR}/dvwa_error.log
+    CustomLog ${APACHE_LOG_DIR}/dvwa_access.log combined
+</VirtualHost>
+EOF
+
+    a2ensite dvwa.conf
+    a2dissite 000-default.conf
+
+    # -----------------------------------------------------------------------
+    # PHP Configuration
+    # -----------------------------------------------------------------------
+    echo "[*] Tuning PHP settings for vulnerability demonstrations..."
+    PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+    PHP_INI="/etc/php/${PHP_VERSION}/apache2/php.ini"
+
+    # allow_url_include enables Remote File Inclusion (RFI) exercises.
+    # Deprecated in PHP 7.4 but still functional in PHP 8.x — expected
+    # on DVWA's setup page; DVWA core remains fully operational.
+    sed -i 's/^allow_url_include = Off/allow_url_include = On/' "$PHP_INI"
+
+    # Show PHP errors — useful for SQL injection / debugging exercises
+    sed -i 's/^display_errors = Off/display_errors = On/' "$PHP_INI"
+
+    # -----------------------------------------------------------------------
+    # Restart Apache to apply all changes
+    # -----------------------------------------------------------------------
+    systemctl restart apache2
+
+    echo ""
+    echo "============================================================"
+    echo " DVWA Installation Complete!"
+    echo "============================================================"
+    echo ""
+    echo "  Steps to finish setup (from your HOST machine):"
+    echo ""
+    echo "  1. Open: http://localhost:8080/setup.php"
+    echo "     -> Click 'Create / Reset Database'"
+    echo ""
+    echo "  2. Login at: http://localhost:8080/login.php"
+    echo "     Username : admin"
+    echo "     Password : password"
+    echo ""
+    echo "  3. Scanning / proxying tools target:"
+    echo "     http://192.168.56.50"
+    echo ""
+    echo "  WARNING: This VM is INTENTIONALLY INSECURE."
+    echo "           Keep it isolated — do NOT expose to the internet."
+    echo "============================================================"
+  SHELL
+
+  # Message displayed after 'vagrant up' completes
+  config.vm.post_up_message = <<-MSG
+    ============================================================
+     Lab 5: DVWA - Damn Vulnerable Web Application
+    ============================================================
+
+     STEP 1 - Initialize the database (do this once):
+       http://localhost:8080/setup.php
+       -> Click "Create / Reset Database"
+
+     STEP 2 - Log in:
+       http://localhost:8080/login.php
+       Username : admin
+       Password : password
+
+     STEP 3 - Scan / attack using the private network IP:
+       192.168.56.50
+       e.g.  nikto -h http://192.168.56.50
+             nmap -sV --script=http-enum 192.168.56.50
+             sqlmap -u "http://192.168.56.50/vulnerabilities/sqli/?id=1&Submit=Submit" --cookie="PHPSESSID=<your-session>;security=low"
+
+     Security level starts at LOW — raise it inside DVWA for extra challenge.
+
+     WARNING: This VM is intentionally vulnerable!
+              NEVER expose it to the internet or untrusted networks.
+    ============================================================
+  MSG
+end
