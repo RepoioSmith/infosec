@@ -20,6 +20,8 @@ Welcome to your journey into the essential field of cybersecurity. In our increa
 - [Nmap Workshop 101 - A Not at All Gentle Introduction to Nmap](nmap101.md)
 - [tcpdump Workshop - From Zero to Hero](workshops/tcpdump_workshop_guide.md)
 - [tcpdump Workshop - Uses Cases](workshops/tcpdump_use_cases.md)
+- [Operation ZOLOTO](workshops/rainbowcrack_workshop.md)
+
 
 ## EXAMS
 - [Midterm #1](exams/midterm1/README.md)
