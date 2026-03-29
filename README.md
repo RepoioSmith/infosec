@@ -17,10 +17,14 @@
 Welcome to your journey into the essential field of cybersecurity. In our increasingly digital world, where everything from personal communications to critical infrastructure depends on interconnected systems, understanding how to protect information and technology has never been more important. This course will equip you with the fundamental knowledge and skills needed to navigate the complex landscape of digital security. 
 
 ## WORKSHOPS
-- [Nmap Workshop 101 - A Not at All Gentle Introduction to Nmap](nmap101.md)
-- [tcpdump Workshop - From Zero to Hero](workshops/tcpdump_workshop_guide.md)
-- [tcpdump Workshop - Uses Cases](workshops/tcpdump_use_cases.md)
-- [Operation ZOLOTO](workshops/rainbowcrack_workshop.md)
+- [Introduction to Nmap](nmap101.md)
+- [tcpdump & BPF Rules: Zero to Hero](workshops/tcpdump_workshop_guide.md)
+- [tcpdump: Practical Use Cases](workshops/tcpdump_use_cases.md)
+- [Operation ZOLOTO — Rainbow Tables & RainbowCrack](workshops/rainbowcrack_workshop.md)
+- [Operation XTABAY — Metasploit: Zero to Hero](workshops/metasploit_workshop.md)
+- [Operation CENOTE — Netcat: The Swiss Army Knife of Hacking](workshops/netcat_workshop.md)
+- [Operation DARK SOCKET — Netstat: Hunt Malicious Connections Like a Blue Teamer](workshops/netstat_workshop.md)
+- [Operation OPEN SOCKET — ss: The Network Analyst's Scalpel](workshops/ss_workshop.md)
 
 
 ## EXAMS
