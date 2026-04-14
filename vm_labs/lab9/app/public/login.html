@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign In — NorthStar Bank &amp; Trust</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+
+<div class="login-header">
+  <a href="/" class="nav__brand">
+    <div class="nav__logo" style="width:32px;height:32px;font-size:.85rem">NS</div>
+    <div>
+      <div class="nav__brand-name">NorthStar Bank &amp; Trust</div>
+      <div class="nav__brand-tagline">Secure Customer Portal</div>
+    </div>
+  </a>
+</div>
+
+<div class="login-body">
+  <div class="login-card">
+    <div class="login-card__head">
+      <h1 class="login-card__title">Welcome Back</h1>
+      <p class="login-card__sub">Sign in to your NorthStar account</p>
+    </div>
+
+    <div id="alert-box" style="display:none"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">
+          Password
+          <a href="#" style="font-weight:400;float:right;font-size:.75rem;color:var(--gray-400)">Forgot password?</a>
+        </label>
+        <input type="password" id="password" name="password" placeholder="••••••••••" autocomplete="current-password" required>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem">
+        <input type="checkbox" id="remember" name="remember" style="width:auto;display:inline-block">
+        <label for="remember" style="margin-bottom:0;font-weight:400;color:var(--gray-600)">Keep me signed in for 8 hours</label>
+      </div>
+      <button type="submit" class="btn btn--primary btn--full btn--lg" id="submit-btn">Sign In</button>
+    </form>
+
+    <hr class="divider">
+    <p class="text-center text-sm text-muted">
+      New to NorthStar? <a href="#">Open an account</a>
+    </p>
+  </div>
+</div>
+
+<div class="login-footer">
+  <p>© 2025 NorthStar Bank &amp; Trust · Member FDIC · NMLS #0247183</p>
+  <p style="margin-top:.375rem"><a href="#">Privacy Policy</a> · <a href="#">Security</a> · <a href="#">Accessibility</a></p>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const alertBox = document.getElementById('alert-box');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    alertBox.style.display = 'none';
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem('ns_token', data.token);
+        localStorage.setItem('ns_user',  JSON.stringify(data.user));
+        window.location.href = '/dashboard.html';
+      } else {
+        alertBox.className = 'alert alert--err';
+        alertBox.textContent = data.error || 'Invalid credentials. Please try again.';
+        alertBox.style.display = 'flex';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    } catch {
+      alertBox.className = 'alert alert--err';
+      alertBox.textContent = 'Network error. Please try again.';
+      alertBox.style.display = 'flex';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Transfer Funds — NorthStar Bank &amp; Trust</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__brand">
+      <div class="nav__logo">NS</div>
+      <div>
+        <div class="nav__brand-name">NorthStar Bank &amp; Trust</div>
+        <div class="nav__brand-tagline">Member FDIC · Est. 1987</div>
+      </div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/transfer.html" class="active">Transfer</a></li>
+      <li><a href="#">Payments</a></li>
+      <li><a href="#">Statements</a></li>
+    </ul>
+    <div class="nav__actions">
+      <span class="nav__user">Signed in as <strong id="nav-name">…</strong></span>
+      <button class="btn btn--ghost btn--sm" id="logout-btn" style="color:rgba(255,255,255,.70)">Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar__section">
+      <div class="sidebar__label">Payments</div>
+      <ul class="sidebar__nav">
+        <li><a href="/transfer.html" class="active">Transfer Funds</a></li>
+        <li><a href="#">Pay Bills</a></li>
+        <li><a href="#">Scheduled Payments</a></li>
+        <li><a href="#">Wire Transfer</a></li>
+      </ul>
+    </div>
+    <div class="sidebar__section">
+      <div class="sidebar__label">Accounts</div>
+      <ul class="sidebar__nav">
+        <li><a href="/dashboard.html">Overview</a></li>
+        <li><a href="#">Transaction History</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header__eyebrow">Payments &amp; Transfers</div>
+      <h1 class="page-header__title">Transfer Funds</h1>
+      <p class="page-header__sub">Move money between accounts or send to an external institution.</p>
+    </div>
+
+    <div class="row">
+      <!-- Transfer form -->
+      <div class="col" style="max-width:600px">
+        <div class="card">
+          <div class="card__head">
+            <div>
+              <div class="card__title">New Transfer</div>
+              <div class="card__sub">Standard ACH — 1-2 business days</div>
+            </div>
+            <span class="badge badge--ok">Secure</span>
+          </div>
+          <div class="card__body">
+            <div id="alert-box" style="display:none"></div>
+            <div id="result-box" style="display:none"></div>
+
+            <form id="transfer-form" novalidate>
+              <div class="form-group">
+                <label for="from-account">From Account</label>
+                <select id="from-account" name="from_account" required>
+                  <option value="">— Select source account —</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="to-account">To Account Number</label>
+                <input type="text" id="to-account" name="to_account" placeholder="NS-XXX-XXX-XXXX or routing + account" required>
+                <span class="form-hint">NorthStar internal or external routing number</span>
+              </div>
+
+              <div class="form-group">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap">
+                  <input type="number" id="amount" name="amount" placeholder="0.00" min="0.01" step="0.01" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="memo">Memo (optional)</label>
+                <input type="text" id="memo" name="memo" placeholder="e.g. Rent payment — January 2025">
+              </div>
+
+              <hr class="divider">
+
+              <!-- API / Webhook integration section -->
+              <details>
+                <summary style="cursor:pointer;font-size:.875rem;font-weight:600;color:var(--navy);margin-bottom:.75rem">
+                  ▸ Business API — Payment Notification Webhook
+                </summary>
+                <div style="margin-top:.75rem">
+                  <div class="alert alert--info mb-2" style="font-size:.8125rem">
+                    For business accounts using our Payment Notification API. Enter a webhook URL to receive real-time transfer status callbacks. Supports HTTP and HTTPS endpoints.
+                  </div>
+                  <div class="form-group">
+                    <label for="callback-url">Webhook Notification URL</label>
+                    <input type="text" id="callback-url" name="callback_url"
+                      placeholder="https://your-system.example.com/payment-notify">
+                    <span class="form-hint">Your server will receive a POST with transfer status. Leave blank to disable.</span>
+                  </div>
+                </div>
+              </details>
+
+              <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn--primary btn--lg" id="submit-btn">Submit Transfer</button>
+                <button type="reset" class="btn btn--outline">Clear</button>
+              </div>
+            </form>
+          </div>
+          <div class="card__foot">
+            Transfers are subject to review. Large transfers may require additional verification.
+          </div>
+        </div>
+      </div>
+
+      <!-- Info sidebar -->
+      <div class="col" style="max-width:320px">
+        <div class="card mb-2">
+          <div class="card__head"><div class="card__title">Transfer Limits</div></div>
+          <div class="card__body">
+            <table style="font-size:.8125rem">
+              <tbody>
+                <tr><td style="padding:.375rem 0;color:var(--gray-600)">Daily ACH limit</td><td style="padding:.375rem 0;text-align:right;font-weight:600">$50,000</td></tr>
+                <tr><td style="padding:.375rem 0;color:var(--gray-600)">Wire transfer</td><td style="padding:.375rem 0;text-align:right;font-weight:600">$500,000</td></tr>
+                <tr><td style="padding:.375rem 0;color:var(--gray-600)">International</td><td style="padding:.375rem 0;text-align:right;font-weight:600">On request</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__head"><div class="card__title">Transfer Timeline</div></div>
+          <div class="card__body" style="font-size:.8125rem;color:var(--gray-600)">
+            <p><strong>Internal transfers</strong> — Instant (same business day)</p>
+            <p class="mt-1"><strong>External ACH</strong> — 1-2 business days</p>
+            <p class="mt-1"><strong>Wire transfers</strong> — Same day if submitted before 3 PM ET</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="footer" style="padding:.875rem 1.5rem">
+  <div class="footer__bottom" style="margin:0;padding:0;border:none">
+    <span>© 2025 NorthStar Bank &amp; Trust · Member FDIC</span>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  const token = localStorage.getItem('ns_token');
+  const user  = JSON.parse(localStorage.getItem('ns_user') || '{}');
+  if (!token) { window.location.href = '/login.html'; }
+
+  document.getElementById('nav-name').textContent = user.name || user.username || '?';
+
+  // Populate account selector
+  fetch('/api/accounts', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById('from-account');
+      (data.accounts || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.account_number;
+        opt.textContent = `${a.account_type.charAt(0).toUpperCase()+a.account_type.slice(1)} — ${a.account_number} ($${a.balance.toLocaleString('en-US',{minimumFractionDigits:2})})`;
+        sel.appendChild(opt);
+      });
+    });
+
+  document.getElementById('transfer-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const alertBox  = document.getElementById('alert-box');
+    const resultBox = document.getElementById('result-box');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
+    alertBox.style.display = 'none';
+    resultBox.style.display = 'none';
+
+    const payload = {
+      from_account: document.getElementById('from-account').value,
+      to_account:   document.getElementById('to-account').value,
+      amount:       document.getElementById('amount').value,
+      memo:         document.getElementById('memo').value,
+      callback_url: document.getElementById('callback-url').value || undefined,
+    };
+
+    try {
+      // Use notify endpoint if webhook URL is provided (SSRF sink)
+      const endpoint = payload.callback_url ? '/api/transfer/notify' : '/api/transfer/submit';
+      const res  = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      resultBox.className = 'card' ;
+      resultBox.style.display = 'block';
+      resultBox.innerHTML = `
+        <div class="card__head"><div class="card__title">Transfer Result</div></div>
+        <div class="card__body">
+          <pre style="font-size:.8125rem;white-space:pre-wrap;word-break:break-all;font-family:var(--mono);color:var(--gray-800)">${JSON.stringify(data, null, 2)}</pre>
+        </div>`;
+    } catch (err) {
+      alertBox.className = 'alert alert--err';
+      alertBox.textContent = 'Request failed: ' + err.message;
+      alertBox.style.display = 'flex';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Submit Transfer';
+    }
+  });
+
+  document.getElementById('logout-btn').onclick = () => {
+    localStorage.clear();
+    window.location.href = '/login.html';
+  };
+</script>
+</body>
+</html>

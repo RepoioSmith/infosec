@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /documents/
+Disallow: /api/
+Disallow: /.env
+Disallow: /backup.sql

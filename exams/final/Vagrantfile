@@ -1,0 +1,198 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# ============================================================
+#  OPERATION GHOST SIGNAL — Final Exam Network
+#  NeoCorp Quantum Syndicate — Sector 7 Regional Data Center
+#  Year 3000 | Cybersecurity Final Exam
+# ============================================================
+#
+#  Topology:
+#    DMZ Network     : 10.10.10.0/24  (dmz_net)
+#    Internal Network: 192.168.50.0/24 (internal_net)
+#
+#  Nodes:
+#    attacker     10.10.10.5         — Student attack terminal (DMZ)
+#    gateway      10.10.10.1         — NQS perimeter gateway (multi-homed)
+#                 192.168.50.1
+#    web01        10.10.10.10        — NQS public portal (DMZ)
+#    ftp01        10.10.10.20        — NQS file transfer node (DMZ)
+#    intranet     192.168.50.10      — NQS internal intranet (Internal)
+#    dbserver     192.168.50.20      — NQS quantum database (Internal)
+#    workstation  192.168.50.30      — NQS operator workstation (Internal)
+#
+#  Requirements:
+#    - VirtualBox >= 6.1  (or libvirt — see provider notes below)
+#    - Vagrant >= 2.3
+#    - Disk space: ~3 GB for all boxes
+#    - RAM: ~2 GB total recommended
+#
+#  Usage:
+#    vagrant up                  # Spin up all nodes
+#    vagrant up attacker web01   # Spin up specific nodes
+#    vagrant ssh attacker        # SSH into attacker box
+#    vagrant destroy -f          # Tear down everything
+# ============================================================
+
+Vagrant.configure("2") do |config|
+
+  # ---------------------------------------------------------
+  # Global defaults
+  # ---------------------------------------------------------
+  config.vm.box = "generic/alpine319"
+  config.vm.box_check_update = false
+
+  # Default VirtualBox provider settings (low footprint)
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 256
+    vb.cpus   = 1
+    vb.linked_clone = true
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    vb.customize ["modifyvm", :id, "--ioapic", "on"]
+  end
+
+  # Optional: libvirt provider (uncomment if using KVM instead of VirtualBox)
+  # config.vm.provider "libvirt" do |lv|
+  #   lv.memory = 256
+  #   lv.cpus   = 1
+  # end
+
+  # ---------------------------------------------------------
+  # NODE 1 — ATTACKER (Student Terminal)
+  # Role   : Offensive tools platform, DMZ entry point
+  # Network: DMZ only (10.10.10.5)
+  # ---------------------------------------------------------
+  config.vm.define "attacker" do |node|
+    node.vm.hostname = "ghost-terminal"
+    node.vm.network "private_network",
+      ip: "10.10.10.5",
+      virtualbox__intnet: "dmz_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 512   # Slightly more RAM for tooling
+      vb.name   = "exam_attacker"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh attacker"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 2 — GATEWAY (NQS Perimeter Router)
+  # Role   : Multi-homed DMZ↔Internal router, pivot point
+  # Network: DMZ (10.10.10.1) + Internal (192.168.50.1)
+  # Vulns  : Weak SSH credentials discoverable via FTP
+  # ---------------------------------------------------------
+  config.vm.define "gateway" do |node|
+    node.vm.hostname = "nqs-gateway"
+    node.vm.network "private_network",
+      ip: "10.10.10.1",
+      virtualbox__intnet: "dmz_net"
+    node.vm.network "private_network",
+      ip: "192.168.50.1",
+      virtualbox__intnet: "internal_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "exam_gateway"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh gateway"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 3 — WEB01 (NQS Public Portal)
+  # Role   : Nginx + PHP + MariaDB web application
+  # Network: DMZ (10.10.10.10)
+  # Vulns  : SQL Injection on login page
+  # ---------------------------------------------------------
+  config.vm.define "web01" do |node|
+    node.vm.hostname = "nqs-web01"
+    node.vm.network "private_network",
+      ip: "10.10.10.10",
+      virtualbox__intnet: "dmz_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 384   # PHP + MariaDB need a bit more
+      vb.name   = "exam_web01"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh web01"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 4 — FTP01 (NQS File Transfer Node)
+  # Role   : vsftpd file server
+  # Network: DMZ (10.10.10.20)
+  # Vulns  : Anonymous FTP enabled, sensitive files exposed
+  # ---------------------------------------------------------
+  config.vm.define "ftp01" do |node|
+    node.vm.hostname = "nqs-ftp01"
+    node.vm.network "private_network",
+      ip: "10.10.10.20",
+      virtualbox__intnet: "dmz_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "exam_ftp01"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh ftp01"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 5 — INTRANET (NQS Internal Web Server)
+  # Role   : Apache2 + CGI internal application
+  # Network: Internal (192.168.50.10)
+  # Vulns  : Command injection via CGI parameter
+  # ---------------------------------------------------------
+  config.vm.define "intranet" do |node|
+    node.vm.hostname = "nqs-intranet"
+    node.vm.network "private_network",
+      ip: "192.168.50.10",
+      virtualbox__intnet: "internal_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "exam_intranet"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh intranet"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 6 — DBSERVER (NQS Quantum Database)
+  # Role   : MariaDB database server
+  # Network: Internal (192.168.50.20)
+  # Vulns  : Remote root with no password, bound to 0.0.0.0
+  # ---------------------------------------------------------
+  config.vm.define "dbserver" do |node|
+    node.vm.hostname = "nqs-dbserver"
+    node.vm.network "private_network",
+      ip: "192.168.50.20",
+      virtualbox__intnet: "internal_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 384
+      vb.name   = "exam_dbserver"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh dbserver"
+  end
+
+  # ---------------------------------------------------------
+  # NODE 7 — WORKSTATION (NQS Operator Workstation)
+  # Role   : Internal employee workstation (final target)
+  # Network: Internal (192.168.50.30)
+  # Vulns  : Weak SSH creds + sudo GTFOBin privilege escalation
+  # ---------------------------------------------------------
+  config.vm.define "workstation" do |node|
+    node.vm.hostname = "nqs-workstation"
+    node.vm.network "private_network",
+      ip: "192.168.50.30",
+      virtualbox__intnet: "internal_net"
+
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "exam_workstation"
+    end
+
+    node.vm.provision "shell", inline: "sh /vagrant/provision/loader.sh workstation"
+  end
+
+end

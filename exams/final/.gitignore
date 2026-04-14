@@ -1,0 +1,20 @@
+# Instructor-only materials — never distribute to students
+INSTRUCTOR_GUIDE.md
+TOPOLOGY_INSTRUCTOR_ONLY.md
+
+# Plaintext provision scripts — encrypt first with tools/encrypt_provision.sh
+# Only the .enc (encrypted) versions are distributed to students
+provision/*.sh
+!provision/loader.sh
+
+# Exam key — distribute to students separately (BrightSpace / in-person)
+provision/.exam_key
+
+# Encryption tool — instructor only
+tools/
+
+# Vagrant runtime artifacts
+.vagrant/
+
+# Provisioning logs
+*.log

@@ -10,5 +10,8 @@
 - Lab 5: [Lab 5: Web Exploitation with DVWA](lab5/README.md)
 - Lab 6: [Lab 6: Malware Triage with VirusTotal](lab6/README.md)
 - Lab 7: [Lab 7: Password Cracking with John the Ripper and Hashcat](lab7/README.md)
+- Lab 8: [Lab 8: Firewall Hardening with UFW and iptables](lab8/README.md)
+- Lab 9: [Lab 9: Operation VAULT BREACH — Web Application Security CTF](lab9/README.md)
+- Lab 10: [Lab 10: Web Application Security Field Guide — DVWA Reference](lab10/README.md)
 
 ## Happy Hacking!

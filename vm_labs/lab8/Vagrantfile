@@ -1,0 +1,41 @@
+Vagrant.configure("2") do |config|
+
+  # ── Target Server ──────────────────────────────────────────────────────────
+  config.vm.define "target" do |target|
+    target.vm.box      = "ubuntu/jammy64"
+    target.vm.hostname = "lab8-target"
+
+    target.vm.network "private_network", ip: "192.168.56.20"
+
+    target.vm.provider "virtualbox" do |vb|
+      vb.name   = "Lab8-Target"
+      vb.memory = 1024
+      vb.cpus   = 1
+    end
+
+    target.vm.provision "shell", path: "provision.sh"
+  end
+
+  # ── Attacker ───────────────────────────────────────────────────────────────
+  config.vm.define "attacker" do |attacker|
+    attacker.vm.box      = "ubuntu/jammy64"
+    attacker.vm.hostname = "lab8-attacker"
+
+    attacker.vm.network "private_network", ip: "192.168.56.10"
+
+    attacker.vm.provider "virtualbox" do |vb|
+      vb.name   = "Lab8-Attacker"
+      vb.memory = 512
+      vb.cpus   = 1
+    end
+
+    attacker.vm.provision "shell", inline: <<-SHELL
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -qq
+      apt-get install -y -qq nmap hping3 netcat-openbsd curl ftp
+      # firewalk is in universe — install if available
+      apt-get install -y -qq firewalk 2>/dev/null || true
+    SHELL
+  end
+
+end

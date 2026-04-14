@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Panel — NorthStar Bank &amp; Trust</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Login screen (shown by default) -->
+<div id="admin-login-screen" class="admin-login">
+  <div class="admin-login-card">
+    <div style="text-align:center;margin-bottom:1.75rem">
+      <div style="font-size:1.5rem;font-weight:800;color:var(--gold);letter-spacing:.04em">NSB ADMIN</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.45);letter-spacing:.07em;text-transform:uppercase;margin-top:.25rem">Restricted Access Portal</div>
+    </div>
+    <div id="admin-alert" style="display:none" class="alert alert--err mb-2"></div>
+    <form id="admin-login-form">
+      <div class="form-group">
+        <label for="admin-user">Administrator Username</label>
+        <input type="text" id="admin-user" placeholder="admin" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="admin-pass">Password</label>
+        <input type="password" id="admin-pass" placeholder="••••••••••">
+      </div>
+      <button type="submit" class="btn btn--gold btn--full mt-2" id="admin-submit">Access Admin Panel</button>
+    </form>
+    <p style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.3);margin-top:1.25rem">
+      Unauthorized access is monitored and prosecuted under 18 U.S.C. § 1030.
+    </p>
+  </div>
+</div>
+
+<!-- Admin dashboard (hidden until authenticated) -->
+<div id="admin-dashboard" style="display:none">
+  <div class="admin-bar">
+    <span class="admin-bar__title">★ NorthStar Admin Console</span>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <span class="admin-bar__env">ENV: PRODUCTION</span>
+      <button class="btn btn--ghost btn--sm" id="admin-logout" style="color:rgba(255,255,255,.65)">Sign Out</button>
+    </div>
+  </div>
+
+  <div style="padding:2rem 2.5rem;max-width:1000px">
+    <div class="page-header">
+      <div class="page-header__eyebrow">System Administration</div>
+      <h1 class="page-header__title">Administrator Dashboard</h1>
+    </div>
+
+    <!-- Flag reveal -->
+    <div class="alert alert--warn mb-3">
+      <div>
+        <strong>⚠ Security Audit Entry:</strong> Privileged admin login recorded at <span id="login-ts"></span>.
+        <div class="flag-reveal mt-1" id="admin-flag-box"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid mb-3">
+      <div class="stat"><div class="stat__label">Total Users</div><div class="stat__value" id="stat-users">—</div></div>
+      <div class="stat"><div class="stat__label">Active Sessions</div><div class="stat__value">14</div></div>
+      <div class="stat"><div class="stat__label">Failed Logins (24h)</div><div class="stat__value text-error" id="stat-fails">—</div></div>
+      <div class="stat"><div class="stat__label">DB Version</div><div class="stat__value text-sm">SQLite 3.45.1</div></div>
+    </div>
+
+    <!-- Users table -->
+    <div class="card">
+      <div class="card__head">
+        <div class="card__title">User Management</div>
+        <button class="btn btn--primary btn--sm" id="load-users-btn">Load Users</button>
+      </div>
+      <div class="card__body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Full Name</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray-400)">Click "Load Users" to populate.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit log -->
+    <div class="card mt-3">
+      <div class="card__head">
+        <div class="card__title">Audit Log (Last 50 Transactions)</div>
+        <button class="btn btn--outline btn--sm" id="load-audit-btn">Load Log</button>
+      </div>
+      <div class="card__body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>User</th><th>Account</th><th>Date</th><th>Description</th><th>Amount</th></tr>
+            </thead>
+            <tbody id="audit-tbody">
+              <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gray-400)">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let adminToken = null;
+
+  document.getElementById('admin-login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn   = document.getElementById('admin-submit');
+    const alert = document.getElementById('admin-alert');
+    btn.disabled = true;
+    alert.style.display = 'none';
+
+    const username = document.getElementById('admin-user').value;
+    const password = document.getElementById('admin-pass').value;
+
+    try {
+      const res  = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.authenticated) {
+        document.getElementById('admin-login-screen').style.display  = 'none';
+        document.getElementById('admin-dashboard').style.display     = 'block';
+        document.getElementById('login-ts').textContent = new Date().toLocaleString();
+        document.getElementById('admin-flag-box').textContent = data.flag;
+        document.getElementById('stat-fails').textContent = Math.floor(Math.random() * 20 + 3);
+      } else {
+        alert.textContent = 'Invalid credentials. Access denied.';
+        alert.style.display = 'flex';
+      }
+    } catch {
+      alert.textContent = 'Server error. Please try again.';
+      alert.style.display = 'flex';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('load-users-btn').addEventListener('click', async () => {
+    // Requires a JWT token with admin or cfo role (JWT manipulation / Flag 8)
+    const token = localStorage.getItem('ns_token') || prompt('Enter bearer token:');
+    if (!token) return;
+
+    const res  = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await res.json();
+
+    if (data.error) {
+      alert('Error: ' + data.error);
+      return;
+    }
+
+    const tbody = document.getElementById('users-tbody');
+    tbody.innerHTML = (data.users || []).map(u =>
+      `<tr>
+        <td class="text-mono text-sm">${u.id}</td>
+        <td>${u.username}</td>
+        <td>${u.email}</td>
+        <td><span class="badge ${u.role==='admin'?'badge--err':u.role==='cfo'?'badge--gold':'badge--neu'}">${u.role}</span></td>
+        <td>${u.full_name}</td>
+        <td><button class="btn btn--outline btn--sm">Edit</button></td>
+      </tr>`).join('');
+
+    document.getElementById('stat-users').textContent = data.users ? data.users.length : '—';
+
+    if (data.system_flag) {
+      const banner = document.createElement('div');
+      banner.className = 'alert alert--warn mt-2';
+      banner.innerHTML = `<strong>System flag retrieved:</strong> <span class="text-mono">${data.system_flag}</span>`;
+      document.getElementById('users-tbody').closest('.card').after(banner);
+    }
+  });
+
+  document.getElementById('load-audit-btn').addEventListener('click', async () => {
+    const token = localStorage.getItem('ns_token') || prompt('Enter bearer token:');
+    if (!token) return;
+    const res  = await fetch('/api/admin/audit', { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await res.json();
+    const tbody = document.getElementById('audit-tbody');
+    tbody.innerHTML = (data.audit_log || []).map(r =>
+      `<tr>
+        <td>${r.username}</td>
+        <td class="text-mono text-sm">${r.account_number}</td>
+        <td class="text-sm">${r.date}</td>
+        <td>${r.description}</td>
+        <td class="${r.amount<0?'debit':'credit'}">${r.amount<0?'-':'+'}$${Math.abs(r.amount).toFixed(2)}</td>
+      </tr>`).join('');
+  });
+
+  document.getElementById('admin-logout').onclick = () => {
+    document.getElementById('admin-dashboard').style.display  = 'none';
+    document.getElementById('admin-login-screen').style.display = 'flex';
+  };
+</script>
+</body>
+</html>

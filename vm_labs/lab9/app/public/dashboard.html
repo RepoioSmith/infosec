@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard — NorthStar Bank &amp; Trust</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__brand">
+      <div class="nav__logo">NS</div>
+      <div>
+        <div class="nav__brand-name">NorthStar Bank &amp; Trust</div>
+        <div class="nav__brand-tagline">Member FDIC · Est. 1987</div>
+      </div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="/transfer.html">Transfer</a></li>
+      <li><a href="#">Payments</a></li>
+      <li><a href="#">Statements</a></li>
+    </ul>
+    <div class="nav__actions">
+      <span class="nav__user">Welcome, <strong id="nav-name">…</strong></span>
+      <button class="btn btn--ghost btn--sm" id="logout-btn" style="color:rgba(255,255,255,.70)">Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__section">
+      <div class="sidebar__label">Accounts</div>
+      <ul class="sidebar__nav">
+        <li><a href="/dashboard.html" class="active">Overview</a></li>
+        <li><a href="#">Transaction History</a></li>
+        <li><a href="#">Statements</a></li>
+        <li><a href="#">eDocuments</a></li>
+      </ul>
+    </div>
+    <div class="sidebar__section">
+      <div class="sidebar__label">Payments</div>
+      <ul class="sidebar__nav">
+        <li><a href="/transfer.html">Transfer Funds</a></li>
+        <li><a href="#">Pay Bills</a></li>
+        <li><a href="#">Scheduled Payments</a></li>
+      </ul>
+    </div>
+    <div class="sidebar__section">
+      <div class="sidebar__label">Tools</div>
+      <ul class="sidebar__nav">
+        <li><a href="#">Spending Insights</a></li>
+        <li><a href="#">Savings Goals</a></li>
+        <li><a href="#">Alerts &amp; Notifications</a></li>
+        <li><a href="#">Security Settings</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <div class="page-header">
+      <div class="page-header__eyebrow">Account Overview</div>
+      <h1 class="page-header__title" id="welcome-msg">Good morning</h1>
+      <p class="page-header__sub">Last login: <span id="last-login">—</span></p>
+    </div>
+
+    <!-- CFO/Admin flag banner (shown only for privileged roles) -->
+    <div id="cfo-banner" style="display:none" class="alert alert--warn mb-2">
+      <div>
+        <strong>Privileged Account Notice:</strong> You are logged in with elevated privileges.
+        CFO access token validated. <span id="cfo-flag" class="text-mono"></span>
+      </div>
+    </div>
+
+    <!-- Account summary tiles -->
+    <div id="accounts-grid" class="account-grid">
+      <div class="account-tile" style="opacity:.4">
+        <div class="account-tile__type">Loading…</div>
+        <div class="account-tile__num">NS-XXX-XXX-XXXX</div>
+        <div class="account-tile__bal">$——</div>
+        <div class="account-tile__lbl">Available Balance</div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat__label">Total Assets</div>
+        <div class="stat__value" id="total-assets">$——</div>
+        <div class="stat__change stat__change--up">↑ 2.4% this month</div>
+      </div>
+      <div class="stat">
+        <div class="stat__label">Pending Transfers</div>
+        <div class="stat__value">0</div>
+        <div class="stat__change stat__change--up">No pending activity</div>
+      </div>
+      <div class="stat">
+        <div class="stat__label">Monthly Spending</div>
+        <div class="stat__value" id="monthly-spend">$——</div>
+        <div class="stat__change stat__change--down">↓ 8.1% vs last month</div>
+      </div>
+      <div class="stat">
+        <div class="stat__label">Security Score</div>
+        <div class="stat__value text-success">92 / 100</div>
+        <div class="stat__change">Two-factor enabled</div>
+      </div>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="card">
+      <div class="card__head">
+        <div>
+          <div class="card__title">Recent Transactions</div>
+          <div class="card__sub">Showing last 30 days — Account <span id="active-account-num">—</span></div>
+        </div>
+        <button class="btn btn--outline btn--sm" id="load-stmt-btn">Load Statement</button>
+      </div>
+      <div class="card__body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txn-body">
+              <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray-400)">Loading transactions…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card__foot d-flex justify-between align-center">
+        <span>Account ID: <span id="footer-account-id" class="text-mono">—</span></span>
+        <a href="#" class="text-sm">Download CSV</a>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="row mt-3">
+      <div class="col">
+        <div class="card">
+          <div class="card__head"><div class="card__title">Quick Actions</div></div>
+          <div class="card__body" style="display:flex;flex-wrap:wrap;gap:.75rem">
+            <a href="/transfer.html" class="btn btn--primary">Transfer Funds</a>
+            <button class="btn btn--outline">Pay a Bill</button>
+            <button class="btn btn--outline">Open New Account</button>
+            <button class="btn btn--outline">Request Statement</button>
+          </div>
+        </div>
+      </div>
+      <div class="col" style="max-width:320px">
+        <div class="card">
+          <div class="card__head"><div class="card__title">Security Alert</div></div>
+          <div class="card__body">
+            <div class="alert alert--ok" style="margin-bottom:0">
+              <span>✓</span>
+              <div>Your account has no suspicious activity in the last 30 days.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer class="footer" style="padding:.875rem 1.5rem">
+  <div class="footer__bottom" style="margin:0;padding:0;border:none">
+    <span>© 2025 NorthStar Bank &amp; Trust · Member FDIC</span>
+    <span><a href="#">Privacy</a> · <a href="#">Security</a> · <a href="#">Help</a></span>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  const token = localStorage.getItem('ns_token');
+  const user  = JSON.parse(localStorage.getItem('ns_user') || '{}');
+  if (!token) { window.location.href = '/login.html'; }
+
+  document.getElementById('nav-name').textContent = user.name || user.username || '?';
+  document.getElementById('welcome-msg').textContent = 'Good morning, ' + (user.name || user.username);
+  document.getElementById('last-login').textContent = new Date().toLocaleString();
+
+  // Show CFO/admin flag banner
+  if (user.role === 'cfo' || user.role === 'admin') {
+    document.getElementById('cfo-banner').style.display = 'flex';
+    document.getElementById('cfo-flag').textContent = 'FLAG{r0cky0u_cr4ck3d_th3_cf0_p4ssw0rd}';
+  }
+
+  // Load accounts
+  fetch('/api/accounts', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('accounts-grid');
+      const accounts = data.accounts || [];
+      if (!accounts.length) { grid.innerHTML = '<p class="text-muted">No accounts found.</p>'; return; }
+
+      let total = 0;
+      grid.innerHTML = accounts.map(a => {
+        total += a.balance;
+        const typeLabel = ({ checking:'Checking Account', savings:'Savings Account', money_market:'Money Market', admin_reserve:'Reserve Account' })[a.account_type] || a.account_type;
+        return `<div class="account-tile" data-id="${a.id}" style="cursor:pointer" onclick="loadStatement(${a.id},'${a.account_number}')">
+          <div class="account-tile__type">${typeLabel}</div>
+          <div class="account-tile__num">${a.account_number}</div>
+          <div class="account-tile__bal">${fmt(a.balance)}</div>
+          <div class="account-tile__lbl">Available Balance</div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('total-assets').textContent = fmt(total);
+
+      // Auto-load first account statement
+      if (accounts[0]) loadStatement(accounts[0].id, accounts[0].account_number);
+    });
+
+  function loadStatement(accountId, accountNum) {
+    document.getElementById('active-account-num').textContent = accountNum;
+    document.getElementById('footer-account-id').textContent = accountId;
+
+    fetch(`/api/statement?account_id=${accountId}`, { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(r => r.json())
+      .then(data => {
+        const tbody = document.getElementById('txn-body');
+        const txns  = data.transactions || [];
+        if (!txns.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray-400)">No transactions found.</td></tr>';
+          return;
+        }
+        let spend = 0;
+        tbody.innerHTML = txns.map(t => {
+          if (t.amount < 0) spend += Math.abs(t.amount);
+          const cls = t.amount >= 0 ? 'credit' : 'debit';
+          const sign = t.amount >= 0 ? '+' : '';
+          return `<tr>
+            <td class="text-mono text-sm">${t.date}</td>
+            <td>${t.description}${t.notes ? `<br><small class="text-muted text-xs">${t.notes}</small>` : ''}</td>
+            <td class="${cls}">${sign}${fmt(t.amount)}</td>
+            <td class="text-mono text-sm">${fmt(t.balance_after)}</td>
+            <td><span class="badge badge--ok">Cleared</span></td>
+          </tr>`;
+        }).join('');
+        document.getElementById('monthly-spend').textContent = fmt(spend);
+      });
+  }
+
+  document.getElementById('load-stmt-btn').onclick = () => {
+    const id = prompt('Enter Account ID to load statement:');
+    if (id) loadStatement(id, `NS-XXX-XXX-${id.padStart(4,'0')}`);
+  };
+
+  document.getElementById('logout-btn').onclick = () => {
+    localStorage.clear();
+    window.location.href = '/login.html';
+  };
+
+  function fmt(n) {
+    return '$' + Math.abs(Number(n)).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+</script>
+</body>
+</html>
