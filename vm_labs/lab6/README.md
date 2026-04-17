@@ -177,10 +177,8 @@ Your job: triage each hash using VirusTotal and complete the **Analyst Triage Re
 | 6 | `invoice_Q4_2025.doc.exe` | `C:\Users\accounting\Downloads\` | SHA-256 | `a172b471eba69b5cfdc5f37c8d17cc36` |
 | 7 | `libcrypto.so` | `/tmp/.hidden/` (Linux server) | SHA-256 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | 8 | `putty.exe` | `C:\Users\sysadmin\Desktop\` | SHA-256 | `1f63816c96a9bde1a7e4f9a6395a3b7614463ff16f82e5ec22beafba6c6d9b5b` |
-| 9 | `chrome_update.exe` | `C:\Users\finance01\AppData\Temp\` | SHA-256 | `[INSTRUCTOR HASH — see instructor key]` |
-| 10 | `backup_sync.ps1` | `C:\ProgramData\Microsoft\` | SHA-256 | `[INSTRUCTOR HASH — see instructor key]` |
-
-> **Samples 9 and 10** are populated by your instructor with current samples sourced from [MalwareBazaar](https://bazaar.abuse.ch/) — a free, community-run malware repository used by SOC teams worldwide. This keeps the assignment fresh and exposes you to real current threat actor activity.
+| 9 | `chrome_update.exe` | `C:\Users\finance01\AppData\Temp\` | SHA-256 | `a0f8d5bef02363ff8d1daefc800d5152b0e637641945e780abb39585ef0261c4` |
+| 10 | `backup_sync.ps1` | `C:\ProgramData\Microsoft\` | SHA-256 | `406c463a0a5f7dbb86653a0c5d6e49793e423f096c6c871e468b4f5cbf369059` |
 
 ---
 
