@@ -1,0 +1,56 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Midterm 2 — Operation SILENT WATCH
+# Network layout:
+#   intnet1 (10.0.1.0/24): snort-ids (10.0.1.10)  +  attacker (10.0.1.30)
+#   intnet2 (10.0.2.0/24): snort-ids (10.0.2.10)  +  target   (10.0.2.20)
+# Snort monitors the intnet1 interface in promiscuous mode.
+# IP forwarding is enabled on snort-ids so traffic can flow between segments.
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "snort-ids" do |ids|
+    ids.vm.box      = "ubuntu/jammy64"
+    ids.vm.hostname = "snort-ids"
+    ids.vm.network "private_network", ip: "10.0.1.10",
+      virtualbox__intnet: "midterm2_intnet1"
+    ids.vm.network "private_network", ip: "10.0.2.10",
+      virtualbox__intnet: "midterm2_intnet2"
+    ids.vm.provider "virtualbox" do |vb|
+      vb.name   = "midterm2-snort-ids"
+      vb.memory = 1024
+      vb.cpus   = 2
+      # Allow promiscuous mode on the attack-segment interface (eth1/enp0s8)
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+    ids.vm.provision "shell", path: "provision/snort-ids.sh"
+  end
+
+  config.vm.define "target" do |tgt|
+    tgt.vm.box      = "generic/alpine319"
+    tgt.vm.hostname = "target"
+    tgt.vm.network "private_network", ip: "10.0.2.20",
+      virtualbox__intnet: "midterm2_intnet2"
+    tgt.vm.provider "virtualbox" do |vb|
+      vb.name   = "midterm2-target"
+      vb.memory = 512
+      vb.cpus   = 1
+    end
+    tgt.vm.provision "shell", path: "provision/target.sh"
+  end
+
+  config.vm.define "attacker" do |atk|
+    atk.vm.box      = "generic/alpine319"
+    atk.vm.hostname = "attacker"
+    atk.vm.network "private_network", ip: "10.0.1.30",
+      virtualbox__intnet: "midterm2_intnet1"
+    atk.vm.provider "virtualbox" do |vb|
+      vb.name   = "midterm2-attacker"
+      vb.memory = 512
+      vb.cpus   = 1
+    end
+    atk.vm.provision "shell", path: "provision/attacker.sh"
+  end
+
+end

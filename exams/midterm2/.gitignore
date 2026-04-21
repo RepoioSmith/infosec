@@ -1,0 +1,13 @@
+# Instructor-only materials — never distribute to students
+INSTRUCTOR.md
+grading/
+
+# Vagrant runtime artifacts
+.vagrant/
+
+# Provisioning and grading logs
+*.log
+
+# Student submissions (if stored locally for grading)
+submissions/
+grades/
