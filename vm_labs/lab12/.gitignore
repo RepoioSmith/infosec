@@ -1,0 +1,12 @@
+# Instructor-only — do not distribute to students
+grading/
+
+# Vagrant runtime
+.vagrant/
+
+# Student submissions and generated grades
+submissions/
+grades/
+
+# Logs
+*.log

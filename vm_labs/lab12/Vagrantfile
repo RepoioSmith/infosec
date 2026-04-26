@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Lab 12 — Operation VELVET LOCK
+# Single Ubuntu VM: Apache2 web server for TLS configuration lab.
+# Port forwarding lets you test from your host browser:
+#   http://localhost:8080  →  VM port 80
+#   https://localhost:8443 →  VM port 443
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "webserver" do |web|
+    web.vm.box      = "ubuntu/jammy64"
+    web.vm.hostname = "svoboda"
+    web.vm.network "forwarded_port", guest: 80,  host: 8080
+    web.vm.network "forwarded_port", guest: 443, host: 8443
+    web.vm.provider "virtualbox" do |vb|
+      vb.name   = "lab12-webserver"
+      vb.memory = 512
+      vb.cpus   = 1
+    end
+    web.vm.provision "shell", path: "provision/server.sh"
+  end
+
+end

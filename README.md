@@ -43,6 +43,7 @@ Welcome to your journey into the essential field of cybersecurity. In our increa
 | [Lab 9](vm_labs/lab9/README.md) | Operation VAULT BREACH — Web App Security CTF | Capture 10 flags by exploiting OWASP Top 10:2025 vulnerabilities in a Node.js banking application |
 | [Lab 10](vm_labs/lab10/README.md) | Web Application Security Field Guide | DVWA exploitation reference covering 12 vulnerabilities with Purple Team analysis and payload cheat sheets |
 | [Lab 11](vm_labs/lab11/README.md) | Operation AIRWAVE — Wardriving & WiFi Security Assessment | Passive wireless survey using aircrack-ng suite and gpsd; classify network security posture and deliver a professional assessment report |
+| [Lab 12](vm_labs/lab12/README.md) | Operation VELVET LOCK — TLS Hardening with OpenSSL & Apache | Generate keys and self-signed certificates, configure HTTPS on Apache, enforce redirect and HSTS, harden cipher suites, and compare plaintext vs encrypted traffic captures |
 
 
 ## EXAMS
