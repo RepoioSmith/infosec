@@ -42,6 +42,23 @@ Vagrant.configure("2") do |config|
   config.vm.box = "generic/alpine319"
   config.vm.box_check_update = false
 
+  # Force rsync-based shared folder — generic/alpine319 has no VirtualBox
+  # Guest Additions, so the default vboxfs mount fails. Rsync works without them.
+  # Plaintext provision scripts are excluded; only loader.sh + .enc files sync.
+  config.vm.synced_folder ".", "/vagrant", type: "rsync",
+    rsync__exclude: [
+      ".git/",
+      ".vagrant/",
+      "tools/",
+      "provision/attacker.sh",
+      "provision/gateway.sh",
+      "provision/web01.sh",
+      "provision/ftp01.sh",
+      "provision/intranet.sh",
+      "provision/dbserver.sh",
+      "provision/workstation.sh"
+    ]
+
   # Default VirtualBox provider settings (low footprint)
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 256

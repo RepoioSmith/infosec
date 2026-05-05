@@ -49,7 +49,7 @@ Welcome to your journey into the essential field of cybersecurity. In our increa
 ## EXAMS
 - [Midterm #1](exams/midterm1/README.md)
 - [Midterm #2 — Operation SILENT WATCH](exams/midterm2/README.md)
-- [Final Exam]()
+- [Final Exam — Operation GHOST SIGNAL](exams/final/README.md)
 
 ## QUIZ SERVER
 The IP address of the server is provided by Brightspace.
