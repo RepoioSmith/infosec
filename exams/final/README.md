@@ -22,7 +22,6 @@ The scenario, the network, and the challenge are described in [`FINAL_EXAM_STUDE
 | **Report format** | Markdown (`.md`) |
 | **Filename**      | `LASTNAME1_LASTNAME2_ghostsignal.md` |
 
-> Teams are assigned by the instructor. You may not work alone or in groups larger than two.
 
 ---
 
